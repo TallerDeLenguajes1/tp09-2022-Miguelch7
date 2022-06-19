@@ -1,73 +1,75 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-Console.Write("Ingrese una ruta: ");
-string path = Console.ReadLine()!;
-string archivoJSON = Directory.GetCurrentDirectory() + "\\index.json";
+Console.Write("Ingrese una cantidad de productos: ");
+int cantidadProductos = Convert.ToInt32(Console.ReadLine());
+string archivoJSON = Directory.GetCurrentDirectory() + "\\productos.json";
 
-List<Archivo> ListaArchivos = new List<Archivo>();
-
-if ( !File.Exists(archivoJSON) ) {
+if (!File.Exists(archivoJSON)) {
   File.Create(archivoJSON);
 };
 
-mostrarDirectorioYListar(path, ListaArchivos);
-guardarContenidoEnJSON(archivoJSON, ListaArchivos);
+List<Producto> ListaProductos = generarProductosAleatoriamente(cantidadProductos);
 
-void mostrarDirectorioYListar(string path, List<Archivo> ListaArchivos) {
+guardarListadoProductosEnJson(ListaProductos, archivoJSON);
 
-  if (Directory.Exists(path)) {
-      
-    List<string> listadoCarpetas = Directory.GetDirectories(path).ToList();
+List<Producto> ListaProductosJSON = leerJSON(archivoJSON);
 
-    Console.WriteLine("-----Carpetas-----");
+mostrarListado(ListaProductosJSON);
 
-    int aux = 1;
+// ---------- Funciones ----------
+List<Producto> generarProductosAleatoriamente(int cantidadProductos) {
 
-    foreach (string carpeta in listadoCarpetas) {
+  List<Producto> ListaProductos = new List<Producto>();
 
-      string[] carpetaAMostrar = carpeta.Split("\\");
-      string nombreCarpeta = carpetaAMostrar[carpetaAMostrar.Length - 1];
-      Console.WriteLine("/" + nombreCarpeta);
+  for (int i = 0; i < cantidadProductos; i++) {
+    
+    Producto producto = new Producto();
 
-      Archivo carpetaObj = new Archivo(nombreCarpeta, null);
-
-      ListaArchivos.Add(carpetaObj);
-
-      Console.WriteLine("/" + nombreCarpeta);
-
-      aux++;
-    };
-
-    Console.WriteLine("-----Archivos-----");
-
-    foreach (string archivo in Directory.GetFiles(path)) {
-      
-      string[] archivoAMostrar = archivo.Split("\\");
-      string[] archivoArray = archivoAMostrar[archivoAMostrar.Length - 1].Split(".");
-      string nombreArchivo = archivoArray[0];
-      string extensionArchivo = archivoArray[archivoArray.Length - 1];
-
-      Console.WriteLine(nombreArchivo + "." + extensionArchivo);
-
-      Archivo archivoObj = new Archivo(nombreArchivo, extensionArchivo);
-
-      ListaArchivos.Add(archivoObj);
-
-      aux++;
-    };
-  } else {
-    Console.WriteLine("El directorio no existe");
+    ListaProductos.Add(producto);
   };
+
+  return ListaProductos;
 };
 
-void guardarContenidoEnJSON(string archivoJSON, List<Archivo> ListaArchivos) {
-
-  StreamWriter sw = new StreamWriter(archivoJSON);
-
-  string listaArchivosJSON = JsonSerializer.Serialize(ListaArchivos);
-
-  sw.WriteLine(listaArchivosJSON);
+void guardarListadoProductosEnJson(List<Producto> ListaProductos, string archivoJSON) {
   
+  string ListaProductosJSON = JsonSerializer.Serialize(ListaProductos);
+  
+  StreamWriter sw = new StreamWriter(archivoJSON);
+  
+  sw.WriteLine(ListaProductosJSON);
+
   sw.Close();
+};
+
+List<Producto> leerJSON(string archivoJSON) {
+  
+  List<Producto> ListadoProductos = new List<Producto>();
+  
+  StreamReader sr = new StreamReader(archivoJSON);
+
+  string ListadoProductosJSON = sr.ReadLine()!;
+
+  if (!string.IsNullOrEmpty(ListadoProductosJSON)) {
+    ListadoProductos = JsonSerializer.Deserialize<List<Producto>>(ListadoProductosJSON);
+  };
+
+  return ListadoProductos;
+};
+
+void mostrarListado(List<Producto> ListadoProductos) {
+
+  int i = 1;
+
+  foreach (Producto producto in ListadoProductos) {
+
+    Console.WriteLine($"----- Producto { i } -----");
+
+    producto.mostrarProducto();
+    
+    Console.WriteLine("");
+
+    i++;
+  }
 };
